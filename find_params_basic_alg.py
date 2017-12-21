@@ -25,8 +25,8 @@ class GradientDescentBasicAlgo:
         self.enforce_Z = enforce_Z
         if f_x is None:
             f_x = lambda x: x
-        if g_x is None:
-            g_x = f_x
+        if g_y is None:
+            g_y = f_x
         if dfdx is None:
             dfdx = lambda x: 1
         if dgdy is None:
@@ -37,6 +37,8 @@ class GradientDescentBasicAlgo:
         if threshold is None:
             threshold = dec(10)**dec(-2)
         self.threshold = threshold
+        if step_size is None:
+            step_size = [dec(0.001)] * 2
         self.step_size = step_size
         self.max_num_of_iterations = max_num_of_iterations
 
@@ -48,7 +50,7 @@ class GradientDescentBasicAlgo:
         # set decimal precision
         basic_algo.set_precision(100)
 
-    def find_params_basic_alg(self, x1=None, y1=None, pi0=None):
+    def find_params(self, x1=None, y1=None, pi0=None, show_progress=True):
         """Runs gradient-descent with the given parameters. step-size can be either dynamic of a number.
         dynamic is good"""
         # init initial values
@@ -58,12 +60,8 @@ class GradientDescentBasicAlgo:
             x1 = self.default_x1
         if y1 is None:
             y1 = self.default_y1
-        if step_size is None:
-            dxdy = [dec(0.001)] * 2
-        elif step_size != 'dynamic':
-            dxdy = step_size
-        if threshold is None:
-            threshold = dec(10)**dec(-2)
+        if self.step_size != 'dynamic':
+            dxdy = self.step_size
         if isinstance(x1, int) or isinstance(x1, float):
             x1 = dec(x1)
         if isinstance(y1, int) or isinstance(y1, float):
@@ -72,7 +70,7 @@ class GradientDescentBasicAlgo:
             pi0 = dec(pi0)
 
         xy = np.array((x1, y1))
-        if enforce_Z:
+        if self.enforce_Z:
             x_param = dec(x1.__round__())
             y_param = dec(y1.__round__())
         else:
@@ -85,31 +83,35 @@ class GradientDescentBasicAlgo:
         ba.gen_iterations(10)
         iter_num = 1
 
-        while (abs(ba.compare_result()) > threshold) and (iter_num < self.max_num_of_iterations):
+        while (abs(ba.compare_result()) > self.threshold) and (iter_num < self.max_num_of_iterations):
             grad = ba.get_derivative()
-            if step_size == 'dynamic':
+            if self.step_size == 'dynamic':
                 dxdy = dec(0.0001) * np.array((abs(grad[0,0]).log10().max(dec(1)),
                                                   abs(grad[0,1]).log10().max(dec(1))))
             xy_diff = np.multiply(-grad, dxdy)
             xy = xy + xy_diff
             x_param, y_param = xy.tolist()[0]
-            if enforce_Z:
+            if self.enforce_Z:
                 x_param = dec(x_param.__round__())
                 y_param = dec(y_param.__round__())
             ba.reinitialize(x_param, y_param)
             ba.gen_iterations(10)
             iter_num += 1
-            if iter_num % 1000 == 0:
+            if iter_num % 1000 == 0 and show_progress:
                 print('\r%d' % iter_num, end='')
         print('')
-        return xy.tolist()
+        if iter_num >= self.max_num_of_iterations and show_progress:
+            print('Iterations limit reached. Aborting.')
+        elif show_progress:
+            print('Result distance: %s' % abs(ba.compare_result()))
+        return xy.tolist()[0]
 
     def z_to_arbitrary_lattice(self, x1, y1, f, dfdx, g='same', dgdy='same'):
         if g == 'same':
             g = f
         if dgdy == 'same':
             dgdy = dfdx
-        first_diff_mat = np.matrix(((dec(dfdx(x1), dec(0)), (dec(0), dec(dgdy(y1)))), dtype=dtype))
+        first_diff_mat = np.matrix(((dec(dfdx(x1)), dec(0)), (dec(0), dec(dgdy(y1)))), dtype=dec)
         f_x1 = f(x1)
         g_y1 = g(y1)
         return f_x1, g_y1, first_diff_mat
