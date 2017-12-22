@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 
 class GradientDescentBasicAlgo:
     def __init__(self, enforce_Z=False, f_x=None, dfdx=None, g_y=None, dgdy=None,
-                 max_num_of_iterations = 100000, threshold=None, step_size='dynamic'):
+                 max_num_of_iterations = 50000, threshold=None, step_size='dynamic'):
         # lattice parameters
         self.enforce_Z = enforce_Z
         if f_x is None:
@@ -82,6 +82,7 @@ class GradientDescentBasicAlgo:
         ba = basic_algo.PiBasicAlgo(x1=processed_x, y1=processed_y, pi0=pi0, first_diff_mat=first_diff_mat)
         ba.gen_iterations(10)
         iter_num = 1
+        dec_0 = dec(0)
 
         while (abs(ba.compare_result()) > self.threshold) and (iter_num < self.max_num_of_iterations):
             grad = ba.get_derivative()
@@ -91,6 +92,8 @@ class GradientDescentBasicAlgo:
             xy_diff = np.multiply(-grad, dxdy)
             xy = xy + xy_diff
             x_param, y_param = xy.tolist()[0]
+            if x_param <= dec_0 or y_param <= dec_0:
+                break
             if self.enforce_Z:
                 x_param = dec(x_param.__round__())
                 y_param = dec(y_param.__round__())
@@ -102,11 +105,16 @@ class GradientDescentBasicAlgo:
             if iter_num % 1000 == 0 and show_progress:
                 print('\r%d' % iter_num, end='')
         print('')
+
         if iter_num >= self.max_num_of_iterations and show_progress:
             print('Iterations limit reached. Aborting.')
-            return
+        elif show_progress and (x_param <= dec_0 or y_param <= dec_0):
+            print('Parameters reached non-positive value. Aborting.')
         elif show_progress:
             print('Result distance: %s' % abs(ba.compare_result()))
+
+        if iter_num >= self.max_num_of_iterations or x_param <= dec_0 or y_param <= dec_0:
+            return
         return xy.tolist()[0]
 
     def z_to_arbitrary_lattice(self, x1, y1, f, dfdx, g='same', dgdy='same'):
