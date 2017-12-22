@@ -16,10 +16,12 @@ class PiRatioIterations:
         self.first_diff_mat = first_diff_mat
         self.diff_vectors = []
 
-    def reinitialize(self, x1, y1, pi0):
+    def reinitialize(self, x1, y1, pi0, first_diff_mat=None):
         self.x1 = x1
         self.y1 = y1
         self.pi0 = pi0
+        if first_diff_mat is not None:
+            self.first_diff_mat = first_diff_mat
 
     def gen_iterations(self, num_of_iters):
         raise NotImplemented()
@@ -49,7 +51,7 @@ class PiBasicAlgo(PiRatioIterations):
             first_diff_mat = np.matrix(((dec(1), dec(0)), (dec(0), dec(1))), dtype=dtype)
         PiRatioIterations.__init__(self, x1, y1, pi0, diff_mat_gen, first_diff_mat, dtype)
 
-    def reinitialize(self, x1=None, y1=None, pi0=None):
+    def reinitialize(self, x1=None, y1=None, pi0=None, first_diff_mat=None):
         if not x1:
             x1 = dec(2).sqrt()
             x1 = (x1.sqrt() + dec(1) / x1.sqrt()) / dec(2)
@@ -57,7 +59,7 @@ class PiBasicAlgo(PiRatioIterations):
             y1 = dec(2).sqrt().sqrt()
         if not pi0:
             pi0 = (dec(2)+dec(2).sqrt())
-        PiRatioIterations.reinitialize(self, x1, y1, pi0)
+        PiRatioIterations.reinitialize(self, x1, y1, pi0, first_diff_mat)
 
     def gen_iterations(self, num_of_iters):
         self.xs = [self.x1]

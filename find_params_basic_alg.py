@@ -94,7 +94,9 @@ class GradientDescentBasicAlgo:
             if self.enforce_Z:
                 x_param = dec(x_param.__round__())
                 y_param = dec(y_param.__round__())
-            ba.reinitialize(x_param, y_param)
+            processed_x, processed_y, first_diff_mat = self.z_to_arbitrary_lattice(x_param, y_param,
+                                                                               self.f, self.dfdx, self.g, self.dgdy)
+            ba.reinitialize(processed_x, processed_y, first_diff_mat=first_diff_mat)
             ba.gen_iterations(10)
             iter_num += 1
             if iter_num % 1000 == 0 and show_progress:
@@ -102,6 +104,7 @@ class GradientDescentBasicAlgo:
         print('')
         if iter_num >= self.max_num_of_iterations and show_progress:
             print('Iterations limit reached. Aborting.')
+            return
         elif show_progress:
             print('Result distance: %s' % abs(ba.compare_result()))
         return xy.tolist()[0]
