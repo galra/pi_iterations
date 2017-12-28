@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 
 class GradientDescentBasicAlgo:
     def __init__(self, enforce_Z=False, f_x=None, dfdx=None, g_y=None, dgdy=None,
-                 max_num_of_iterations = 50000, threshold=None, step_size='dynamic'):
+                 max_num_of_iterations = 7000, threshold=None, step_size='dynamic'):
         # lattice parameters
         self.enforce_Z = enforce_Z
         if f_x is None:
@@ -87,7 +87,7 @@ class GradientDescentBasicAlgo:
         while (abs(ba.compare_result()) > self.threshold) and (iter_num < self.max_num_of_iterations):
             grad = ba.get_derivative()
             if self.step_size == 'dynamic':
-                dxdy = dec(0.0001) * np.array((abs(grad[0,0]).log10().max(dec(1)),
+                    dxdy = dec(0.005) * np.array((abs(grad[0,0]).log10().max(dec(1)),
                                                   abs(grad[0,1]).log10().max(dec(1))))
             xy_diff = np.multiply(-grad, dxdy)
             xy = xy + xy_diff
@@ -104,7 +104,8 @@ class GradientDescentBasicAlgo:
             iter_num += 1
             if iter_num % 1000 == 0 and show_progress:
                 print('\r%d' % iter_num, end='')
-        print('')
+        if show_progress:
+            print('')
 
         if iter_num >= self.max_num_of_iterations and show_progress:
             print('Iterations limit reached. Aborting.')
